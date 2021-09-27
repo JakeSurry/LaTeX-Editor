@@ -1,0 +1,1 @@
+You need Python 3, Kivy, Poppler, LaTeX, and pdf2image
