@@ -36,36 +36,38 @@ class LaTeXEditorApp(App):
         self.main_layout = GridLayout(cols=4, padding=20, spacing=20)
 
         self.side_menu = GridLayout(rows=3, size_hint_x = .15, spacing=5)
-        self.save_button = Button(text='Save')
-        self.save_button.bind(on_release=self.save)
+        self.save_button = Button(text='Save', on_release=self.save)
         self.side_menu.add_widget(self.save_button)
-        self.load_button = Button(text='Load')
-        self.load_button.bind(on_release=self.load_view)
+        self.load_button = Button(text='Load', on_release=self.load_view)
         self.side_menu.add_widget(self.load_button)
 
         self.main_layout.add_widget(self.side_menu)
 
-        self.text_box = self.text_input = TextInput(text='\\documentclass[12pt]{article}\n\\begin{document}\n\nExample\n\n\\end{document}', font_name='courier')
+        self.text_box = self.text_input = TextInput(text='\\documentclass[12pt]{article}\n\\begin{document}\n\nYour Work Here\n\n\\end{document}', font_name='courier')
         self.text_box.bind(text = self.keywords)
         self.main_layout.add_widget(self.text_box)
 
-        self.center_menu = GridLayout(rows=4, cols=1, spacing=5, size_hint_x = .15)
+        self.center_menu = GridLayout(rows=5, cols=1, spacing=5, size_hint_x = .15)
         self.main_layout.add_widget(self.center_menu)
-        self.zoomin_button = Button(text='+', size_hint_y = .1)
-        self.zoomin_button.bind(on_release = self.zoomin)
+        self.zoomin_button = Button(text='+', on_release = self.zoomin, size_hint_y = .1)
         self.center_menu.add_widget(self.zoomin_button)
-        self.zoomout_button = Button(text='-', size_hint_y = .1)
-        self.zoomout_button.bind(on_release = self.zoomout)
+        self.zoomout_button = Button(text='-', on_release = self.zoomout, size_hint_y = .1)
         self.center_menu.add_widget(self.zoomout_button)
-        self.run_button = Button(text='Run')
-        self.run_button.bind(on_release = self.update_output)
+
+        self.pageselect_layout = GridLayout(cols=2,  spacing=5, size_hint_y=.1)
+        self.prevpage_button = Button(text='<--', on_release=lambda run: self.change_page(False))
+        self.pageselect_layout.add_widget(self.prevpage_button)
+        self.nextpage_button = Button(text='-->', on_release=lambda run: self.change_page(True))
+        self.pageselect_layout.add_widget(self.nextpage_button)
+        self.center_menu.add_widget(self.pageselect_layout)
+
+        self.run_button = Button(text='Run', on_release = self.update_output)
         self.center_menu.add_widget(self.run_button)
-        self.saveimg_button = Button(text='Get', size_hint_y = .2)
-        self.saveimg_button.bind(on_release = self.save_image)
+        self.saveimg_button = Button(text=' Save \nImage', on_release = self.save_image, size_hint_y = .2)
         self.center_menu.add_widget(self.saveimg_button)
 
         self.output_scroll = ScrollView()
-        self.output_image = Image(source = 'latex_output/latex_raw.jpg', size_hint=(None, None), size=(1000, 1000), allow_stretch = True)
+        self.output_image = Image(source = 'latex_output/disp_jpg/latex_raw-0.jpg', size_hint=(None, None), size=(1200, 1200), allow_stretch = True)
         self.output_scroll.add_widget(self.output_image)
         self.main_layout.add_widget(self.output_scroll)
 
@@ -94,23 +96,24 @@ class LaTeXEditorApp(App):
     def zoomout(self, OBJECT):
         image_size = self.output_image.size[0] / 1.1
         self.output_image.size = [image_size, image_size]
+
     def update_output(self, OBJECT):
         with open('latex_output/latex_raw.TeX', 'w') as fout:
             fout.write(self.text_box.text)
         r = subprocess.run(['/Library/TeX/texbin/pdflatex', '-output-format=pdf', '-interaction=nonstopmode', 'latex_raw.TeX'], cwd='latex_output', capture_output = True)
 
         images = convert_from_path('latex_output/latex_raw.pdf')
-        for image in images:
-            image.save('latex_output/latex_raw.jpg', 'JPEG')
+        for num, image in enumerate(images):
+            image.save(f'latex_output/disp_jpg/latex_raw-{num}.jpg', 'JPEG')
 
         error = str(r.stdout).split('\\n')
         '''
         if len(error) > 14:
-            self.error_popup(error)
+            self.latex_error(error)
         '''
         self.output_image.reload()
 
-    def error_popup(self, error):
+    def latex_error(self, error):
         print(error)
         for i in range(11):
             error.pop(0)
@@ -122,73 +125,83 @@ class LaTeXEditorApp(App):
         layout.add_widget(closeButton)       
         popup = Popup(title ='Error:', content=layout, size_hint=(.5, .25))  
         popup.open()
+        closeButton.bind(on_release = popup.dismiss)
+
+    def info_popup(self, error):
+        layout = GridLayout(cols = 1, padding = 10, spacing=20)
+        popupText = Label(text = error)
+        closeButton = Button(text = "Acknowledge")
+        layout.add_widget(popupText)
+        layout.add_widget(closeButton)       
+        popup = Popup(title ='Error:', content=layout, size_hint=(.5, .25))  
+        popup.open()
         closeButton.bind(on_release = popup.dismiss) 
+
+    def change_page(self, next_page):
+            source = self.output_image.source
+            source = source.split('-')
+            if next_page:
+                num = int(source[1][0])+1
+            else:
+                num = int(source[1][0])-1
+            source[1] = f'{num}.jpg'
+            source = '-'.join(source)
+            if os.path.isfile(source):
+                self.output_image.source = source
+            else:
+                pass
 
     def save_image(self, OBJECT):
         try:
-            org_path = self.output_image.source
             trg_path = self.file_path
             trg_path = trg_path.split('/')
             trg_path.pop(-1)
             trg_path = '/'.join(trg_path)
             name = trg_path.split('/')[-1].lower()
-            trg_path = f'{trg_path}/{name}.png'
-            shutil.copyfile(org_path, trg_path)
-            layout = GridLayout(cols = 1, padding = 10, spacing=20)
-            popupText = Label(text='Succesfully Saved To Parent Folder')
-            closeButton = Button(text = "Acknowledge")
-            layout.add_widget(popupText)
-            layout.add_widget(closeButton)       
-            popup = Popup(title ='Sucess:', content=layout, size_hint=(.25, .25))  
-            popup.open()
-            closeButton.bind(on_release = popup.dismiss) 
+            trg_path = f'{trg_path}/{name}.pdf'
+            shutil.copyfile('latex_output/latex_raw.pdf', trg_path)
+            self.info_popup('Succesfully saved .PDF to parent folder')
         except OSError:
-            layout = GridLayout(cols = 1, padding = 10, spacing=20)
-            popupText = Label(text='No Parent Folder Detected')
-            closeButton = Button(text = "Acknowledge")
-            layout.add_widget(popupText)
-            layout.add_widget(closeButton)       
-            popup = Popup(title ='Error:', content=layout, size_hint=(.25, .25))  
-            popup.open()
-            closeButton.bind(on_release = popup.dismiss) 
+            self.info_popup('No Parent Folder Detected')
 
     def save(self, OBJECT):
         try:
             with open(self.file_path, 'w') as fout:
                 fout.write(self.text_box.text)
         except FileNotFoundError:
-            layout = GridLayout(cols = 1, padding = 10, spacing=20)
-            popupText = Label(text = 'No file selected or File does not exist')
-            closeButton = Button(text = "Acknowledge")
-            layout.add_widget(popupText)
-            layout.add_widget(closeButton)       
-            popup = Popup(title ='Error:', content=layout, size_hint=(.5, .25))  
-            popup.open()
-            closeButton.bind(on_release = popup.dismiss) 
+            self.info_popup('No file selected or file does not exist')
 
     def load_view(self, OBJECT):
         popup_list = []
         layout = GridLayout(rows=2, padding=10, spacing=20)
-        filechooser = FileChooserListView(path="projects", on_submit=self.load)
+        filechooser = FileChooserListView(path="projects")
         layout.add_widget(filechooser)
-        button_layout = GridLayout(cols=2, padding=10, spacing=20, size_hint_y = .2)
+        button_layout = GridLayout(cols=3, padding=10, spacing=20, size_hint_y = .2)
         new_button = Button(text='New')
         button_layout.add_widget(new_button)
+        select_button = Button(text='Select')
+        button_layout.add_widget(select_button)
         exit_button = Button(text='Close')
         button_layout.add_widget(exit_button)
         layout.add_widget(button_layout)
         popup = Popup(title='New', content=layout, size_hint=(.75, .75))
         popup_list.append(popup)
         new_button.bind(on_release= lambda run: self.file_or_folder(filechooser.path, popup_list))
+        select_button.bind(on_release=lambda run:self.load(filechooser.selection, popup_list))
         exit_button.bind(on_release=popup.dismiss)
         popup.open()
 
-    def load(self, OBJECT, file_path, pos):
-        self.file_path = file_path[0]
-        with open(self.file_path) as fout:
-            text = fout.read()
-        self.text_box.text = text
-        self.update_output(None)
+    def load(self, file_path, popup):
+        popup[0].dismiss()
+        try:
+            self.file_path = file_path[0]
+            with open(self.file_path) as fout:
+                text = fout.read()
+            self.text_box.text = text
+            self.update_output(None)
+        except UnicodeDecodeError:
+            self.info_popup('Selected file is not a .TeX file')
+
 
     def file_or_folder(self, path, popup_list):
         layout = GridLayout(rows=2, padding=10, spacing=20)
@@ -222,13 +235,12 @@ class LaTeXEditorApp(App):
         popup.open()
         popup_list.append(popup)
 
-
     def new_folder(self, path, name, popup_list):
         for popup in popup_list:
             popup.dismiss()
         os.mkdir(f'{path}/{name}')
-        close_button = Button(text='Acknowledge')
-        popup = Popup(title='Done', content=close_button, size_hint=(.25, .25))
+        close_button = Button(text='Done')
+        popup = Popup(title='File Created', content=close_button, size_hint=(.25, .25))
         popup.open()
         close_button.bind(on_release=popup.dismiss)
 
@@ -236,9 +248,9 @@ class LaTeXEditorApp(App):
         for popup in popup_list:
             popup.dismiss()
         f = open(f'{path}/{name}.TeX', 'w')
-        f.write('\\documentclass[12pt]{article}\n\\begin{document}\n\nExample\n\n\\end{document}')
-        close_button = Button(text='Acknowledge')
-        popup = Popup(title='Done', content=close_button, size_hint=(.25, .25))
+        f.write('\\documentclass[12pt]{article}\n\\begin{document}\n\nYour Work Here\n\n\\end{document}')
+        close_button = Button(text='Done')
+        popup = Popup(title='File Created', content=close_button, size_hint=(.25, .25))
         popup.open()
         close_button.bind(on_release=popup.dismiss)
   
