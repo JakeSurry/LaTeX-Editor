@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021) (preloaded format=latex 2021.9.22)  26 SEP 2021 12:30
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021) (preloaded format=pdflatex 2021.9.22)  26 SEP 2021 21:02
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -48,17 +48,11 @@ tree-dvips version .91 of May 16, 1995
 \pos@br=\toks22
 \@arrow=\count190
 \@tempdimc=\dimen147
-) (/usr/local/texlive/2021/texmf-dist/tex/latex/l3backend/l3backend-dvips.def
-File: l3backend-dvips.def 2021-03-18 L3 backend support: dvips
+) (/usr/local/texlive/2021/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
+File: l3backend-pdftex.def 2021-03-18 L3 backend support: PDF output (pdfTeX)
+\l__color_backend_stack_int=\count191
 \l__pdf_internal_box=\box47
-\g__pdf_backend_object_int=\count191
-\l__pdf_backend_content_box=\box48
-\l__pdf_backend_model_box=\box49
-\g__pdf_backend_annotation_int=\count192
-\g__pdf_backend_link_int=\count193
-\g__pdf_backend_link_sf_int=\count194
-)
-(./latex_raw.aux)
+) (./latex_raw.aux)
 \openout1 = `latex_raw.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 4.
@@ -83,14 +77,50 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <6> on input line 17.
  [1
 
+
+Non-PDF special ignored!
+<special> header=tree-dvips91.pro
+{/usr/local/texlive/2021/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
+Non-PDF special ignored!
+<special> ps:@beginspec/nodemargin 2.0 pt def 0.3 pt setlinewidth [] 0 setd...
+Non-PDF special ignored!
+<special> ps:@beginspec/nodemargin 2.0 pt def 0.3 pt setlinewidth [] 0 setd...
+Non-PDF special ignored!
+<special> ps:@beginspec/nodemargin 2.0 pt def 0.3 pt setlinewidth [] 0 setd...
+Non-PDF special ignored!
+<special> ps:@beginspec/nodemargin 2.0 pt def 0.3 pt setlinewidth [] 0 setd...
+Non-PDF special ignored!
+<special> ps:@beginspec/nodemargin 2.0 pt def 0.3 pt setlinewidth [] 0 setd...
+Non-PDF special ignored!
+<special> ps:@beginspec/nodemargin 2.0 pt def 0.3 pt setlinewidth [] 0 setd...
+Non-PDF special ignored!
+<special> ps:@beginspec/nodemargin 2.0 pt def 0.3 pt setlinewidth [] 0 setd...
+Non-PDF special ignored!
+<special> ps:@beginspec/nodemargin 2.0 pt def 0.3 pt setlinewidth [] 0 setd...
+Non-PDF special ignored!
+<special> ps:@beginspec/nodemargin 2.0 pt def 0.3 pt setlinewidth [] 0 setd...
 ] (./latex_raw.aux) ) 
 Here is how much of TeX's memory you used:
- 537 strings out of 478995
- 9060 string characters out of 5858210
- 299904 words of memory out of 5000000
- 18085 multiletter control sequences out of 15000+600000
+ 529 strings out of 478994
+ 8695 string characters out of 5858184
+ 298176 words of memory out of 5000000
+ 18076 multiletter control sequences out of 15000+600000
  408634 words of font info for 44 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 44i,9n,50p,153b,262s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 44i,9n,50p,149b,262s stack positions out of 5000i,500n,10000p,200000b,80000s
+</usr/local/texlive/2021/texmf-dist/fonts/type1/public/ams
+fonts/cm/cmbx10.pfb></usr/local/texlive/2021/texmf-dist/fonts/type1/public/amsf
+onts/cm/cmbx12.pfb></usr/local/texlive/2021/texmf-dist/fonts/type1/public/amsfo
+nts/cm/cmcsc10.pfb></usr/local/texlive/2021/texmf-dist/fonts/type1/public/amsfo
+nts/cm/cmmi8.pfb></usr/local/texlive/2021/texmf-dist/fonts/type1/public/amsfont
+s/cm/cmr10.pfb></usr/local/texlive/2021/texmf-dist/fonts/type1/public/amsfonts/
+cm/cmr12.pfb></usr/local/texlive/2021/texmf-dist/fonts/type1/public/amsfonts/cm
+/cmsy8.pfb></usr/local/texlive/2021/texmf-dist/fonts/type1/public/amsfonts/cm/c
+mti12.pfb>
+Output written on latex_raw.pdf (1 page, 84750 bytes).
+PDF statistics:
+ 40 PDF objects out of 1000 (max. 8388607)
+ 28 compressed objects within 1 object stream
+ 0 named destinations out of 1000 (max. 500000)
+ 1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
-Output written on latex_raw.dvi (1 page, 3420 bytes).
