@@ -1,1 +1,1 @@
-You need Python 3, Kivy, Poppler, LaTeX, and pdf2image
+You need Python 3, Kivy, Poppler, LaTeX, pygments, and pdf2image

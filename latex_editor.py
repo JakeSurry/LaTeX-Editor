@@ -13,21 +13,22 @@ from kivy.uix.popup import Popup
 from kivy.uix.scrollview import ScrollView
 from kivy.core.window import Window
 from kivy.uix.filechooser import FileChooserListView
+from kivy.uix.codeinput import CodeInput
+from pygments.lexers import TexLexer
 from pdf2image import convert_from_path
 import re
 import os
+import glob
 import subprocess
 import shutil
 
 keywords_dic = {
     '[': r'\[ \]',
     'frac': r'\frac{x}{y}',
-    'begin': '\\begin{}\n\n\n\n\\end{}'
+    'begin': '\\begin{}\n\n\n\n\\end{}',
 }
 
 key_reg = r'=(\S*)\ '
-
-LabelBase.register(name='courier', fn_regular='fonts/cour.ttf')
 
 class LaTeXEditorApp(App):
     def build(self):
@@ -43,9 +44,9 @@ class LaTeXEditorApp(App):
 
         self.main_layout.add_widget(self.side_menu)
 
-        self.text_box = self.text_input = TextInput(text='\\documentclass[12pt]{article}\n\\begin{document}\n\nYour Work Here\n\n\\end{document}', font_name='courier')
-        self.text_box.bind(text = self.keywords)
-        self.main_layout.add_widget(self.text_box)
+        self.code_box = CodeInput(lexer=TexLexer(), text='\\documentclass[12pt]{article}\n\\begin{document}\n\nYour Work Here\n\n\\end{document}')
+        self.code_box.bind(text = self.keywords)
+        self.main_layout.add_widget(self.code_box)
 
         self.center_menu = GridLayout(rows=5, cols=1, spacing=5, size_hint_x = .15)
         self.main_layout.add_widget(self.center_menu)
@@ -61,7 +62,7 @@ class LaTeXEditorApp(App):
         self.pageselect_layout.add_widget(self.nextpage_button)
         self.center_menu.add_widget(self.pageselect_layout)
 
-        self.run_button = Button(text='Run', on_release = self.update_output)
+        self.run_button = Button(text='Run', on_release=lambda run: self.update_output(False))
         self.center_menu.add_widget(self.run_button)
         self.saveimg_button = Button(text=' Save \nImage', on_release = self.save_image, size_hint_y = .2)
         self.center_menu.add_widget(self.saveimg_button)
@@ -73,9 +74,9 @@ class LaTeXEditorApp(App):
 
         self.file_path = ''
 
-        self.update_output(None)
+        self.update_output(True)
 
-        Window.size = (1440, 800)
+        Window.size = (1440, 850)
         Window.top = 0
         Window.left = 0
         return self.main_layout
@@ -87,8 +88,8 @@ class LaTeXEditorApp(App):
                     start, end = m.span()
                     text1 = text[:start]
                     text2 = text[end:]
-                    self.text_box.text = text1+keywords_dic[keyword]+text2
-        return self.text_box.text 
+                    self.code_box.text = text1+keywords_dic[keyword]+text2
+        return self.code_box.text 
 
     def zoomin(self, OBJECT):
         image_size = self.output_image.size[0] * 1.1
@@ -97,35 +98,39 @@ class LaTeXEditorApp(App):
         image_size = self.output_image.size[0] / 1.1
         self.output_image.size = [image_size, image_size]
 
-    def update_output(self, OBJECT):
+    def update_output(self, first_update):
         with open('latex_output/latex_raw.TeX', 'w') as fout:
-            fout.write(self.text_box.text)
+            fout.write(self.code_box.text)
         r = subprocess.run(['/Library/TeX/texbin/pdflatex', '-output-format=pdf', '-interaction=nonstopmode', 'latex_raw.TeX'], cwd='latex_output', capture_output = True)
 
+        images = glob.glob('latex_output/disp_jpg/*')
+        for image in images:
+            os.remove(image)
         images = convert_from_path('latex_output/latex_raw.pdf')
         for num, image in enumerate(images):
             image.save(f'latex_output/disp_jpg/latex_raw-{num}.jpg', 'JPEG')
 
-        error = str(r.stdout).split('\\n')
+        self.output_image.reload()
         '''
-        if len(error) > 14:
+        if not first_update:
+            error = str(r.stdout)
             self.latex_error(error)
         '''
-        self.output_image.reload()
-
     def latex_error(self, error):
-        print(error)
-        for i in range(11):
-            error.pop(0)
-        error = f'{error[0]} {error[1]} .'
-        layout = GridLayout(cols = 1, padding = 10, spacing=20)
-        popupText = TextInput(text = error, readonly = True)
-        closeButton = Button(text = "Acknowledge")
-        layout.add_widget(popupText)
-        layout.add_widget(closeButton)       
-        popup = Popup(title ='Error:', content=layout, size_hint=(.5, .25))  
-        popup.open()
-        closeButton.bind(on_release = popup.dismiss)
+        error = error.split('(./latex_raw.aux) ')[1]
+        for m in re.finditer('{', error):
+            start, end = m.span()
+            error = error[:start]
+        error = error.replace(r'\n', ' ')
+        if error != '[':
+            layout = GridLayout(cols = 1, padding = 10, spacing=20)
+            popupText = TextInput(text=error, readonly=True)
+            closeButton = Button(text = "Acknowledge", size_hint_y=.2)
+            layout.add_widget(popupText)
+            layout.add_widget(closeButton)       
+            popup = Popup(title ='Error:', content=layout, size_hint=(.5, .5))  
+            popup.open()
+            closeButton.bind(on_release = popup.dismiss)
 
     def info_popup(self, error):
         layout = GridLayout(cols = 1, padding = 10, spacing=20)
@@ -167,7 +172,7 @@ class LaTeXEditorApp(App):
     def save(self, OBJECT):
         try:
             with open(self.file_path, 'w') as fout:
-                fout.write(self.text_box.text)
+                fout.write(self.code_box.text)
         except FileNotFoundError:
             self.info_popup('No file selected or file does not exist')
 
@@ -197,7 +202,7 @@ class LaTeXEditorApp(App):
             self.file_path = file_path[0]
             with open(self.file_path) as fout:
                 text = fout.read()
-            self.text_box.text = text
+            self.code_box.text = text
             self.update_output(None)
         except UnicodeDecodeError:
             self.info_popup('Selected file is not a .TeX file')
